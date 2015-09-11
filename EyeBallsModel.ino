@@ -55,8 +55,8 @@ int pinTilt1 = 13;
 
 int panPos = 70;
 int tiltPos = 80;
-int panPosDelay;
-int tiltPosDelay;
+int panPosDelay = 1500;  // servo range is 1000 - 2000 usecs.  1500 is center.
+int tiltPosDelay = 1500;
 
 int speedPan;
 int speedTilt;
@@ -107,42 +107,51 @@ void loop(){
 //  if (nunchuk_zbutton() == 1) {
   
     // attach servos if not done yet
-    if (pan0.attached() == 0){pan0.attach(pinPan0);};
-    if (tilt0.attached() == 0){tilt0.attach(pinTilt0);};
-    if (pan1.attached() == 0){pan1.attach(pinPan1);};
-    if (tilt1.attached() == 0){tilt1.attach(pinTilt1);};
+    // a 0-180degree servo is designed for 1000-2000 usecs pulses.
+    if (pan0.attached() == 0) {pan0.attach(pinPan0,1000,2000);}
+    if (tilt0.attached() == 0) {tilt0.attach(pinTilt0,1000,2000);}
+    if (pan1.attached() == 0) {pan1.attach(pinPan1,1000,2000);}
+    if (tilt1.attached() == 0) {tilt1.attach(pinTilt1,1000,2000);}
 
     delay(5);     
   
   // TODO just use map() to translate joystick 0-255 --> 0-1024 (servo output)
   
     // speedPan and speedTilt will vary from approx -10 .. 10
-    speedPan =  (130 - nunchuk_cjoy_x()) / 10;
-    speedTilt =  (130 - nunchuk_cjoy_y()) / 10;
+    speedPan =  (130 - nunchuk_cjoy_x()) / 20;
+    speedTilt =  (130 - nunchuk_cjoy_y()) / 20;
 
     // following code ignores small tilt movements, 
     //   I found it much better to control
-    if ((speedTilt <= 2) & (speedTilt >= -2)) {speedTilt = 0;};
-    if (speedTilt > 2){speedTilt -= 2;};
-    if (speedTilt < -2){speedTilt += 2;};    
+    if ((speedTilt <= 2) && (speedTilt >= -2)) {
+        speedTilt = 0;
+    }
+    if (speedTilt > 2) {speedTilt -= 2;}
+    if (speedTilt < -2) {speedTilt += 2;}
     
     // calculate position of the servos with speed 
-    if ((speedPan != 0) or (speedTilt != 0)){
+    if ((speedPan != 0) || (speedTilt != 0)) {
       panPosDelay += speedPan;
-      tiltPosDelay += speedTilt;    
+      tiltPosDelay += speedTilt;
     }
-    
-    //SAJ added clamp values to range of 0 - 2000
-    if ( panPosDelay < 0 ) panPosDelay = 0;
+
+    //SAJ added clamp values to range of 1000 - 2000 usecs
+    if ( panPosDelay < 1000 ) panPosDelay = 1000;
     if ( panPosDelay > 2000 ) panPosDelay = 2000;
-    if ( tiltPosDelay < 0 ) tiltPosDelay = 0;
+    if ( tiltPosDelay < 1000 ) tiltPosDelay = 1000;
     if ( tiltPosDelay > 2000 ) tiltPosDelay = 2000;
-  
+
     // write data to servos
-    pan0.write(panPosDelay / 10);
-    tilt0.write(tiltPosDelay / 10);
-    pan1.write(panPosDelay / 10);
-    tilt1.write(tiltPosDelay / 10);
+//    pan0.write(panPosDelay / 10);
+//    tilt0.write(tiltPosDelay / 10);
+//    pan1.write(panPosDelay / 10);
+//    tilt1.write(tiltPosDelay / 10);
+
+    pan0.writeMicroseconds(panPosDelay);
+    tilt0.writeMicroseconds(tiltPosDelay);
+    pan1.writeMicroseconds(panPosDelay);
+    tilt1.writeMicroseconds(tiltPosDelay);
+
     
 // output servo for testing
 Serial.print("POS=");
